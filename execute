@@ -1,0 +1,39 @@
+#!/bin/bash
+
+rm RunInfodict.cxx
+rm RunInfodict_rdict.pcm
+rootcint RunInfodict.cxx -c RunInfo.h
+
+rm DigiOpt1dict.cxx
+rm DigiOpt1dict_rdict.pcm
+rootcint DigiOpt1dict.cxx -c DigiOpt1.h
+
+rm DigiStoredict.cxx
+rm DigiStoredict_rdict.pcm
+rootcint DigiStoredict.cxx -c DigiStore.h
+
+rm CauStoredict.cxx
+rm CauStoredict_rdict.pcm
+rootcint CauStoredict.cxx -c CauStore.h
+
+# rm HealthStoredict.cxx
+# rm HealthStoredict_rdict.pcm
+# rootcint HealthStoredict.cxx -c HealthStore.h
+
+g++ -c RunInfodict.cxx `root-config --cflags`  
+g++ -c DigiOpt1dict.cxx `root-config --cflags`  
+g++ -c DigiStoredict.cxx `root-config --cflags` 
+g++ -c CauStoredict.cxx `root-config --cflags` 
+# g++ -c HealthStoredict.cxx `root-config --cflags` 
+
+rm Dict_rdict.pcm
+g++ -c DigiStore.cc  `root-config --cflags` 
+rootcint -f Dict.cc -c -I. -Wall -Wno-deprecated LinkDef.h
+g++ -c Dict.cc  `root-config --cflags` 
+
+g++ -c CauTree.C  `root-config --cflags` 
+g++ -c RPCEve.C  `root-config --cflags` 
+
+g++ -c T2.C  `root-config --cflags` 
+
+g++ `root-config --cflags` -o ino_digi_read1 DigiOpt1dict.o DigiStoredict.o CauStoredict.o DigiStore.o RunInfodict.o Dict.o T2.o ino_digi_read1.C `root-config --glibs` -lMinuit
