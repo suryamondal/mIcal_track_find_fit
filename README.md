@@ -44,3 +44,9 @@ Run:
 ./ino_digi_read1 BRPCv4t_evtraw_20181217_162121.root 0 100 0
 ./ino_digi_read1 corsika76300_FLUKA_SIBYLL_3dFlux_20220105av_trg5of8_20220105aa_25Cr_digi.root 0 100 0
 ```
+
+Batch Submission: The following scrips are for submitting jobs to htcondor.
+```
+surya_job_data.jdl surya_job_sim.jdl
+```
+Change the `initialdir` before submitting jobs.
