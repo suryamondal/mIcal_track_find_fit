@@ -14,17 +14,13 @@ Muon energy loss file: `muon_energy_loss_in_fe.txt`
 
 The detector alignment data is in the ASCII files, i.e. `mIcal_correction_PosTime_20210702.txt  mIcal_correction_sim.txt  mIcal_correction_TDCstrp_20210702.txt`
 
-Input file location is hard coded in the code.
-```
-For Simulated: `/var/nfscondor/surya/sim/`
-For Data: `/var/nfscondor/surya/`
-```
+Input file location is hard coded in the code `./input_files/`.
 
 Output file location is hard coded in the code: `./temp/`.
 
 One might change it in the code, if the input/output file location differs.
 
-A bunch of input files may be present in the above directory. One might use them directly.  
+A bunch of input files may be present in `/var/nfscondor/surya/` and `/var/nfscondor/surya/sim/`. One might use them.  
 
 Arguments to the executable:
 ```
@@ -41,8 +37,8 @@ Compile: `./execute`
 
 Run:
 ```
-./ino_digi_read1 BRPCv4t_evtraw_20181217_162121.root 0 100 0
-./ino_digi_read1 corsika76300_FLUKA_SIBYLL_3dFlux_20220105av_trg5of8_20220105aa_25Cr_digi.root 0 100 0
+For simulated events: ./ino_digi_read1 test_digi.root 0 100 0
+For Data:             ./ino_digi_read1 BRPCv4t_evtraw_20181226_192148.root 0 100 0
 ```
 
 Batch Submission: The following scrips are for submitting jobs to htcondor.

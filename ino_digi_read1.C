@@ -2262,13 +2262,13 @@ int main(int argc, char** argv) {
 
 #ifdef isSimData
   // sprintf(infile, "../mIcal_Track_Fit_20201224/digiData/%s", datafile);
-  // sprintf(infile, "../rredata/%s", datafile);
+  sprintf(infile, "./input_files/%s", datafile);
   // sprintf(infile, "/media/surya/Surya_5/DaqMadurai/maduraiData_mICAL/gmaData/%s", datafile);
-  sprintf(infile, "/var/nfscondor/surya/sim/%s", datafile);
+  // sprintf(infile, "/var/nfscondor/surya/sim/%s", datafile);
 #else  // #ifdef isSimData
-  // sprintf(infile, "../rredata/%s", datafile);
+  sprintf(infile, "./input_files/%s", datafile);
   // sprintf(infile, "/media/surya/Surya_5/DaqMadurai/maduraiData_mICAL/gmaData/%s", datafile);
-  sprintf(infile, "/var/nfscondor/surya/%s", datafile);
+  // sprintf(infile, "/var/nfscondor/surya/%s", datafile);
 #endif
   TFile *fileIn = new TFile(infile, "read");
   
