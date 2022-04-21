@@ -56,7 +56,7 @@ namespace ROOT {
       vector<int> *ptr = 0;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<int>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<int>", -2, "vector", 210,
+         instance("vector<int>", -2, "vector", 386,
                   typeid(vector<int>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEintgR_Dictionary, isa_proxy, 4,
                   sizeof(vector<int>) );
@@ -66,6 +66,8 @@ namespace ROOT {
       instance.SetDeleteArray(&deleteArray_vectorlEintgR);
       instance.SetDestructor(&destruct_vectorlEintgR);
       instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< vector<int> >()));
+
+      ::ROOT::AddClassAlternate("vector<int>","std::vector<int, std::allocator<int> >");
       return &instance;
    }
    // Static variable to force the class initialization
@@ -119,7 +121,7 @@ namespace ROOT {
       vector<float> *ptr = 0;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<float>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<float>", -2, "vector", 210,
+         instance("vector<float>", -2, "vector", 386,
                   typeid(vector<float>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlEfloatgR_Dictionary, isa_proxy, 4,
                   sizeof(vector<float>) );
@@ -129,6 +131,8 @@ namespace ROOT {
       instance.SetDeleteArray(&deleteArray_vectorlEfloatgR);
       instance.SetDestructor(&destruct_vectorlEfloatgR);
       instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< vector<float> >()));
+
+      ::ROOT::AddClassAlternate("vector<float>","std::vector<float, std::allocator<float> >");
       return &instance;
    }
    // Static variable to force the class initialization
@@ -173,8 +177,8 @@ namespace {
 0
     };
     static const char* includePaths[] = {
-"/products/genie/v3_0_6_sl7/ROOT6/root-6.20.04/include/",
-"/home/suryanarayan/Documents/Gobinda/IICHEP/DigiStoreGMA_20220324/",
+"/home/surya/products/ROOT/root_v6.22.08/include/",
+"/home/surya/Documents/Gobinda/IICHEP/mIcal_track_find_fit/",
 0
     };
     static const char* fwdDeclCode = R"DICTFWDDCLS(
@@ -182,7 +186,7 @@ namespace {
 #pragma clang diagnostic ignored "-Wkeyword-compat"
 #pragma clang diagnostic ignored "-Wignored-attributes"
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
-extern int __Cling_Autoloading_Map;
+extern int __Cling_AutoLoading_Map;
 namespace std{template <typename _Tp> class __attribute__((annotate("$clingAutoload$bits/allocator.h")))  __attribute__((annotate("$clingAutoload$string")))  allocator;
 }
 )DICTFWDDCLS";
