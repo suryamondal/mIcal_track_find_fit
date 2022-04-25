@@ -1260,7 +1260,7 @@ void PropagateTrack(TrackInfo &inPoints) {
   ttyy = inPoints.xyzpos.back();
   double crudeTrackLength = calPointDist(ttxx,ttyy);
   
-  double temp_minDist[totalPts];
+  double temp_minDist[totalPts], temp_minDist_wt[totalPts];
   double temp_xext[nlayer];
   double temp_yext[nlayer];
   TVector3 temp_momext[nlayer];
@@ -1275,6 +1275,7 @@ void PropagateTrack(TrackInfo &inPoints) {
     
   for(int jk=0;jk<totalPts;jk++) {
     temp_minDist[jk] = 1000.;
+    temp_minDist_wt[jk] = 1.;
     // cout << " dist check " << cn << " " << jk << " " << temp_minDist[jk] << endl;
   }
   
@@ -1418,6 +1419,7 @@ void PropagateTrack(TrackInfo &inPoints) {
       // cout << " dist " << cn << " " << ij << " " << dist/strpwidth << " " << temp_minDist[ij]/strpwidth;
       if(temp_minDist[ij]>dist) {
 	temp_minDist[ij] = dist;
+	temp_minDist_wt[ij] = 1./pow(TMath::E,totalTime);
       }
       // cout << " ij " << ij << " " << temp_minDist[ij]/strpwidth << endl;
       
@@ -1462,10 +1464,11 @@ void PropagateTrack(TrackInfo &inPoints) {
       // double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
       // sumW += 1./(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
 
+      cout<<" "<<ij<<" mindist "<<temp_minDist[ij]<<" "<<temp_minDist_wt[ij]<<endl;
       double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
       chi2EachMin = TMath::Max(chi2EachMin,ttDistEr);
-      chi2Each += ttDistEr; // Including errors
+      chi2Each += ttDistEr * temp_minDist_wt[ij];
       chi2EachNew = chi2EachNew==0?ttDistEr:chi2EachNew*ttDistEr;
       
       sumW += 1./(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
