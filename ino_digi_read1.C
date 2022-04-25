@@ -1419,7 +1419,7 @@ void PropagateTrack(TrackInfo &inPoints) {
       // cout << " dist " << cn << " " << ij << " " << dist/strpwidth << " " << temp_minDist[ij]/strpwidth;
       if(temp_minDist[ij]>dist) {
 	temp_minDist[ij] = dist;
-	temp_minDist_wt[ij] = 1./pow(TMath::E,totalTime);
+	temp_minDist_wt[ij] = 1./pow(TMath::E(),pow(totalTime,TMath::E()));
       }
       // cout << " ij " << ij << " " << temp_minDist[ij]/strpwidth << endl;
       
@@ -1464,7 +1464,7 @@ void PropagateTrack(TrackInfo &inPoints) {
       // double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
       // sumW += 1./(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
 
-      cout<<" "<<ij<<" mindist "<<temp_minDist[ij]<<" "<<temp_minDist_wt[ij]<<endl;
+      // cout<<" "<<ij<<" mindist "<<temp_minDist[ij]<<" "<<temp_minDist_wt[ij]<<endl;
       double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
       chi2EachMin = TMath::Max(chi2EachMin,ttDistEr);
