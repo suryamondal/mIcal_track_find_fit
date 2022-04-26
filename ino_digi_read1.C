@@ -1253,10 +1253,6 @@ void PropagateTrack(TrackInfo &inPoints) {
   
   // cout << " ipos " << X0/strpwidth << " " << Y0/strpwidth << " " << Z0/strpwidth << " mom " << inPoints.iMom.Mag() << " " << inPoints.iMom.Theta()*180./TMath::Pi() << " " << inPoints.iMom.Phi()*180./TMath::Pi() << " q " << inPoints.charge << endl;
 
-  ttxx = inPoints.xyzpos.front();
-  ttyy = inPoints.xyzpos.back();
-  double crudeTrackLength = calPointDist(ttxx,ttyy);
-  
   double temp_minDist[totalPts], temp_minDist_wt[totalPts];
   double temp_xext[nlayer];
   double temp_yext[nlayer];
@@ -1556,7 +1552,6 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
   //      << " " << par[2]
   //      << " " << par[3]
   //      << " " << par[4]
-  //      << " " << par[5]
   //      // << " " << f
   //      << endl;
 
@@ -1571,7 +1566,6 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
   //      << " " << par[2]
   //      << " " << par[3]
   //      << " " << par[4]
-  //      << " " << par[5]
   //      << " " << f
   //      << endl;
 
@@ -4726,8 +4720,8 @@ int main(int argc, char** argv) {
 	       // //tMinuit->mnprin(3,amin);
 	
 	       TString tmpname;
-	       Double_t parval[100];
-	       Double_t parerr[100];
+	       Double_t parval[5];
+	       Double_t parerr[5];
 	       Double_t lupval, llowval;
 	       Int_t tmpc;
 	
