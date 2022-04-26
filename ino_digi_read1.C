@@ -184,8 +184,6 @@ const int        circlePt      =  nlayer;
 const int        multiDiv1     =  15;
 const int        multiDiv2     =   5;
 
-const int        trackFraction = 4;
-
 
 #ifndef isSimData
 // #include "mIcal_correction_20210325.txt"
@@ -458,7 +456,6 @@ struct TrackInfo {
   int charge;			// -1 -> mu-, +1 -> mu+
   // double ipos[3];
   TVector3         ipos;
-  double dEdx[trackFraction];
   vector<TVector3> xyzpos;
   vector<UShort_t> xyzId;
   vector<TVector3> posCorr;
@@ -1377,9 +1374,6 @@ void PropagateTrack(TrackInfo &inPoints) {
     double tmpMag = MomDir.Mag()*cval1/gevtojoule;
 #ifdef isEloss
     double tmpELoss = (100.*tStepDistance)*(eLossCurve->Eval(1000.*tmpMag)*GetMaterialDensity(xVal[1],yVal[1],zVal[1])*0.001);
-    int lengthFrack = trackFraction*totalTime/crudeTrackLength;
-    if(lengthFrack>=trackFraction) {lengthFrack = trackFraction-1;}
-    tmpELoss *= inPoints.dEdx[lengthFrack];
     // double tmpELoss = (100.*tStepDistance)*(2.*GetMaterialDensity(xVal[1],yVal[1],zVal[1])*0.001);
     // eLoss += tmpELoss*(direction==false?1.:-1.);
     // tmpMag -= tmpELoss*(direction==false?1.:-1.);
@@ -1556,8 +1550,6 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
   inPoints1.ipos[1] = par[1];
   // inPoints1.iMom.SetXYZ(par[2],par[3],par[4]);
   inPoints1.iMom.SetMagThetaPhi(par[2],par[3],par[4]);
-  for(int ij=0;ij<trackFraction;ij++) {
-    inPoints1.dEdx[ij] = par[5+ij];}
 
   // cout << " " << par[0]
   //      << " " << par[1]
@@ -4663,14 +4655,10 @@ int main(int argc, char** argv) {
 		  inPoints1.iMom.Mag(),
 		  inPoints1.iMom.Theta(),
 		  inPoints1.iMom.Phi()};
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 vstart.push_back(1.);}
 	       
 	       vector<Double_t> vstep =
 		 {0.001, 0.001,
 		  0.01, 0.001, 0.001};
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 vstep.push_back(0.01);}
 	       
 	       vector<Double_t> vlimL =
 		 {inPoints1.ipos[0]-posSpread,
@@ -4680,8 +4668,6 @@ int main(int argc, char** argv) {
 		  inPoints1.iMom.Mag()*(1.-momSpread),
 		  inPoints1.iMom.Theta()-thetaSpread,
 		  inPoints1.iMom.Phi()-phiSpread};
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 vlimL.push_back(0.);}
 
 	       vector<Double_t> vlimU =
 		 {inPoints1.ipos[0]+posSpread,
@@ -4690,16 +4676,12 @@ int main(int argc, char** argv) {
 		  inPoints1.iMom.Mag()*(1.+momSpread),
 		  inPoints1.iMom.Theta()+thetaSpread,
 		  inPoints1.iMom.Phi()+phiSpread};
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 vlimU.push_back(10.);}
 	       
 	       vector<TString> parnames =
 		 {"vx","vy",
 		  "pmag","ptheta","pphi"};
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 parnames.push_back(TString::Format("dEdx_%02i",npar));}
 	       
-	       TMinuit *tMinuit = new TMinuit(5+trackFraction);
+	       TMinuit *tMinuit = new TMinuit(5);
 	       tMinuit->SetPrintLevel(-1);
 	       tMinuit->SetFCN(fcn);
 	
@@ -4709,7 +4691,7 @@ int main(int argc, char** argv) {
 	       arglist[0] = 1;
 	       tMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
 	
-	       for(int npr=0;npr<5+trackFraction;npr++) {
+	       for(int npr=0;npr<5;npr++) {
 		 tMinuit->mnparm(npr, parnames[npr], vstart[npr], vstep[npr],
 				 vlimL[npr], vlimU[npr], ierflg);
 	       }
@@ -4749,7 +4731,7 @@ int main(int argc, char** argv) {
 	       Double_t lupval, llowval;
 	       Int_t tmpc;
 	
-	       for(int npr=0;npr<5+trackFraction;npr++) {
+	       for(int npr=0;npr<5;npr++) {
 		 tMinuit->mnpout(npr,tmpname,parval[npr],parerr[npr],
 				 lupval,llowval,tmpc);
 		 // cout << " par " << npr
@@ -4767,8 +4749,6 @@ int main(int argc, char** argv) {
 	       inPoints1.ipos[0] = parval[0];
 	       inPoints1.ipos[1] = parval[1];
 	       inPoints1.iMom.SetMagThetaPhi(parval[2],parval[3],parval[4]);
-	       for(int npar=0;npar<trackFraction;npar++) {
-		 inPoints1.dEdx[npar] = parval[5+npar];;}
 	       PropagateTrack(inPoints1);
 	       
 	       chi2n = inPoints1.chi2;
