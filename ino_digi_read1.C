@@ -1409,7 +1409,8 @@ void PropagateTrack(TrackInfo &inPoints) {
       // cout << " dist " << cn << " " << ij << " " << dist/strpwidth << " " << temp_minDist[ij]/strpwidth;
       if(temp_minDist[ij]>dist) {
 	temp_minDist[ij] = dist;
-	temp_minDist_wt[ij] = 1./pow(TMath::E(),pow(totalTime,TMath::E()));
+	temp_minDist_wt[ij] = 1./pow(TMath::E(),totalTime);
+	// temp_minDist_wt[ij] = 1./pow(TMath::E(),pow(totalTime,TMath::E()));
       }
       // cout << " ij " << ij << " " << temp_minDist[ij]/strpwidth << endl;
       
