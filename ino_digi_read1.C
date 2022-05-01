@@ -1115,7 +1115,10 @@ void PropagateTrack(TrackInfo &inPoints) {
       double ttDistEr =
 	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
 	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
-      // cout<<" ij "<<ij<<" ttDistEr "<<ttDistEr<<" temp_trk_wt "<<temp_trk_wt[ij]<<endl;
+      // cout<<" ij "<<ij
+      // 	  <<" xdev "<<temp_xext[ij]-inPoints.xyzpos[ij].X()
+      // 	  <<" ydev "<<temp_yext[ij]-inPoints.xyzpos[ij].Y()
+      // 	  <<" ttDistEr "<<ttDistEr<<" temp_trk_wt "<<temp_trk_wt[ij]<<endl;
 
       chi2Each += ttDistEr * temp_trk_wt[ij];
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
@@ -1402,7 +1405,10 @@ void PropagateTrack(TrackInfo &inPoints) {
       double ttDistEr =
 	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
 	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
-      // cout<<" ij "<<ij<<" ttDistEr "<<ttDistEr<<" temp_trk_wt "<<temp_trk_wt[ij]<<endl;
+      // cout<<" ij "<<ij
+      // 	  <<" xdev "<<temp_xext[ij]-inPoints.xyzpos[ij].X()
+      // 	  <<" ydev "<<temp_yext[ij]-inPoints.xyzpos[ij].Y()
+      // 	  <<" ttDistEr "<<ttDistEr<<" temp_trk_wt "<<temp_trk_wt[ij]<<endl;
 
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
       chi2EachMin = TMath::Max(chi2EachMin,ttDistEr);
@@ -4705,10 +4711,11 @@ int main(int argc, char** argv) {
 	       // 	     <<" momout "<<momout<<" err "<<momerr
 	       // 	     <<" eloss "<< eloss
 	       // 	     <<" nhits "<<nhits_finder
-	       // 	     << " chi2ndf "<<chi2n/(nhits_finder-5.)
+	       // 	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
 	       // 	     <<endl<<endl;
 	       // }
 #endif
+
 	       if(tMinuit) {delete tMinuit;}
 	       
 #endif	// #ifndef isLifetime
