@@ -473,7 +473,7 @@ struct TrackInfo {
   double trkAsymmetry;
   double energyLoss;		// in GeV
   double trackLength;		// in GeV
-  vector<double> xyext[nside];	// nlayer
+  vector<double> xyext[nside];	// nhits
   vector<double> minDist;	// nhits
   vector<TVector3> momext;
   vector<double> mulScAngle[nside]; // scattering angle in iron
@@ -931,7 +931,7 @@ void PropagateTrack(TrackInfo &inPoints) {
   }
   inPoints.xyext[0].clear();inPoints.xyext[1].clear();
   inPoints.momext.clear();
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     inPoints.xyext[0].push_back(-100.);
     inPoints.xyext[1].push_back(-100.);
     inPoints.momext.push_back(TVector3(-100,1,1));
@@ -955,21 +955,20 @@ void PropagateTrack(TrackInfo &inPoints) {
   //      << " q " << in_Points[6] << endl;
   
   TVector3 MomDir;
+  double temp_trk_wt[totalPts];
+  double temp_xext[totalPts];
+  double temp_yext[totalPts];
   double temp_minDist[totalPts];
-  double temp_xext[nlayer];
-  double temp_yext[nlayer];
   TVector3 temp_momext[nlayer];
   double totalLength;
   double eLoss = 0.;		// in GeV
 
-  for(int jk=0;jk<totalPts;jk++) {
-    temp_minDist[jk] = 1000.;
-    // cout << " dist check " << cn << " " << jk << " " << temp_minDist[jk] << endl;
-  }
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     temp_xext[ij] = -1000.;
     temp_yext[ij] = -1000.;
+    temp_minDist[ij] = -1000.;
     temp_momext[ij].SetMagThetaPhi(-1000.,1,1);
+    temp_trk_wt[ij] = 1.;
   }
   
   double dxdt, dydt, dzdt, dvxdt, dvydt, dvzt;
@@ -1039,56 +1038,32 @@ void PropagateTrack(TrackInfo &inPoints) {
     // if(in_Points[0]<0. || in_Points[0]>stripwidth*nstrip
     //    || in_Points[1]<0. || in_Points[1]>nstrip*stripwidth
     //    || in_Points[2]<0. || in_Points[2]>zz[nlayer-1]+airGap/2.+ironThickness) {break;}
-    
-    
-    /** Calculating Extrapolation values **/
-    // while(extFlag>0 && (in_Points[2]-zz[extFlag])<0.0000000000001) {extFlag--;}
-    // cout << " extFlag " << extFlag << endl;
 
-    // if(direction==false) {
-    //   while(extFlag>0 && in_Points[2]<=zz[extFlag]) {extFlag--;}
-    //   if(extFlag>=0){
-    // 	if(out_Points[2]<=zz[extFlag] && in_Points[2]>=zz[extFlag]) {
-    // 	  temp_xext[extFlag] = out_Points[0];
-    // 	  temp_yext[extFlag] = out_Points[1];
-    // 	  temp_momext[extFlag] = MomDir;
-    // 	  // cout << " extFlag " << extFlag
-    // 	  //      << " xext " << temp_xext[extFlag]/strptom
-    // 	  //      << endl;
-    // 	}
-    //   }
-    // } else {
-    //   while(extFlag<nlayer-1 && in_Points[2]>zz[extFlag]) {extFlag++;}
-    //   if(extFlag<=nlayer-1){
-    // 	if(in_Points[2]<=zz[extFlag] && out_Points[2]>=zz[extFlag]) {
-    // 	  temp_xext[extFlag] = in_Points[0];
-    // 	  temp_yext[extFlag] = in_Points[1];
-    // 	  temp_momext[extFlag] = MomDir;
-    // 	  // cout << " extFlag " << extFlag
-    // 	  //      << " xext " << temp_xext[extFlag]/strptom
-    // 	  //      << endl;
-    // 	}
-    //   }
-    // }
-    // // while(extFlag>0 && in_Points[2]<=zz[extFlag]) {extFlag--;}
-    
     for(int ij=0;ij<totalPts;ij++) {
-      ttxx = inPoints.xyzpos[ij];
-      ttyy.SetXYZ(out_Points[0],out_Points[1],out_Points[2]);
-      double dist = calPointDist(ttxx,ttyy);
-      // double dist = sqrt(pow(inPoints.xyzpos[ij].X()-
-      // 			     out_Points[0],2)+
-      // 			 pow(inPoints.xyzpos[ij].Y()-
-      // 			     out_Points[1],2)+
-      // 			 pow(inPoints.xyzpos[ij].Z()-
-      // 			     out_Points[2],2));
-      // cout << " dist " << cn << " " << ij << " " << dist/strptom << " " << temp_minDist[ij]/strptom;
-      if(temp_minDist[ij]>dist) {
-	temp_minDist[ij] = dist;
+      double lowz  = TMath::Min(in_Points[2], out_Points[2]);
+      double highz = TMath::Max(in_Points[2], out_Points[2]);
+      if(lowz  <= inPoints.xyzpos[ij].Z() &&
+	 highz >= inPoints.xyzpos[ij].Z()) {
+	/** interpolate x and y in the layer */
+	temp_xext[ij] = in_Points[0] +
+	  (out_Points[0] - in_Points[0]) * ((inPoints.xyzpos[ij].Z() - in_Points[2]) /
+					    (out_Points[2]           - in_Points[2]));
+	temp_yext[ij] = in_Points[1] +
+	  (out_Points[1] - in_Points[1]) * ((inPoints.xyzpos[ij].Z() - in_Points[2]) /
+					    (out_Points[2]           - in_Points[2]));
+	temp_minDist[ij] =
+	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
+	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
+	temp_momext[ij] = MomDir;
+    	temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
+	// cout << " ij " << ij
+	//      << " xext " << temp_xext[ij]/strpwidth
+	//      << " xext " << temp_yext[ij]/strpwidth
+	//      << endl;
+	break;
       }
-      // cout << " ij " << ij << " " << temp_minDist[ij]/strptom << endl;
     } // for(int ij=0;ij<totalPts;ij++) {
-    
+        
     double tmpMag = MomDir.Mag();
 #ifdef isEloss
     double tmpELoss = (100.*tStepDistance)*(eLossCurve->Eval(1000.*tmpMag)*GetMaterialDensity(out_Points[0],out_Points[1],out_Points[2])*0.001);
@@ -1134,26 +1109,18 @@ void PropagateTrack(TrackInfo &inPoints) {
   double xysumW[nside] = {0};
   double leastDist = 100., mostDist = 0;
   for(int ij=0;ij<totalPts;ij++) {
-    // chi2Each += temp_minDist[ij]<1000. ? pow(temp_minDist[ij],2.) : 0.;
-    // chi2Each += temp_minDist[ij]<1000. ? pow(temp_minDist[ij],2.)/(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]) : 0.; // Including errors
-    
-    if(temp_minDist[ij]<1000.) {
-      // chi2Each += temp_minDist[ij]<1000. ? pow(temp_minDist[ij],2.) : 0.;
-      double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
-      chi2Each += ttDistEr; // Including errors
+    if(temp_xext[ij]>-1000.) {
+      double ttDistEr =
+	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
+	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
+
+      chi2Each += ttDistEr * temp_trk_wt[ij];
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
+
       sumW += 1./(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
       if(leastDist>ttDistEr) {leastDist = ttDistEr;}
       if(mostDist<ttDistEr) {mostDist = ttDistEr;}
     }
-    // if(fabs(temp_xext[inPoints.hits[ij].posZi])<2
-    //    && fabs(temp_yext[inPoints.hits[ij].posZi])<2) {
-    //   xychi2Each[0] += pow(inPoints.hits[ij].posXY[0]-temp_xext[inPoints.hits[ij].posZi],2)/inPoints.hits[ij].poserrXY[0];
-    //   xychi2Each[1] += pow(inPoints.hits[ij].posXY[1]-temp_yext[inPoints.hits[ij].posZi],2)/inPoints.hits[ij].poserrXY[1];
-    //   xysumW[0] += 1./inPoints.hits[ij].poserrXY[0];
-    //   xysumW[1] += 1./inPoints.hits[ij].poserrXY[1];
-    // } // if(temp_minDist[ij]<1000.) {
-        
     // cout << " ij " << ij
     // 	 << " x " << inPoints.hits[ij].posX/strptom
     // 	 << " y " << inPoints.hits[ij].posY/strptom
@@ -1198,7 +1165,7 @@ void PropagateTrack(TrackInfo &inPoints) {
     // cout << ij << endl;
   }
   // cout << inPoints.ndfout << endl;
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     inPoints.xyext[0][ij] = temp_xext[ij];
     inPoints.xyext[1][ij] = temp_yext[ij];
     inPoints.momext[ij].SetMagThetaPhi(temp_momext[ij].Mag(),temp_momext[ij].Theta(),temp_momext[ij].Phi());
@@ -1235,7 +1202,7 @@ void PropagateTrack(TrackInfo &inPoints) {
   }
   inPoints.xyext[0].clear();inPoints.xyext[1].clear();
   inPoints.momext.clear();
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     inPoints.xyext[0].push_back(-100.);
     inPoints.xyext[1].push_back(-100.);
     inPoints.momext.push_back(TVector3(-100,1,1));
@@ -1253,10 +1220,11 @@ void PropagateTrack(TrackInfo &inPoints) {
   
   // cout << " ipos " << X0/strpwidth << " " << Y0/strpwidth << " " << Z0/strpwidth << " mom " << inPoints.iMom.Mag() << " " << inPoints.iMom.Theta()*180./TMath::Pi() << " " << inPoints.iMom.Phi()*180./TMath::Pi() << " q " << inPoints.charge << endl;
 
-  double temp_minDist[totalPts], temp_minDist_wt[totalPts];
-  double temp_xext[nlayer];
-  double temp_yext[nlayer];
-  TVector3 temp_momext[nlayer];
+  double temp_trk_wt[totalPts];
+  double temp_xext[totalPts];
+  double temp_yext[totalPts];
+  double temp_minDist[totalPts];
+  TVector3 temp_momext[totalPts];
   double totalLength;
   double eLoss = 0.;		// in GeV
   
@@ -1266,16 +1234,12 @@ void PropagateTrack(TrackInfo &inPoints) {
   TVector3 MagField;
   double gammaF;
     
-  for(int jk=0;jk<totalPts;jk++) {
-    temp_minDist[jk] = 1000.;
-    temp_minDist_wt[jk] = 1.;
-    // cout << " dist check " << cn << " " << jk << " " << temp_minDist[jk] << endl;
-  }
-  
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     temp_xext[ij] = -1000.;
     temp_yext[ij] = -1000.;
+    temp_minDist[ij] = -1000.;
     temp_momext[ij].SetMagThetaPhi(-1000.,1,1);
+    temp_trk_wt[ij] = 1.;
   }
   
   xVal[0] = X0;
@@ -1328,38 +1292,7 @@ void PropagateTrack(TrackInfo &inPoints) {
        || yVal[0]<0. || yVal[0]>nstrip*strpwidth
        || zVal[0]<0. || zVal[0]>maxzpos) {break;}
     
-    
-    /** Calculating Extrapolation values **/
-    // while(extFlag>0 && (zVal[0]-zz[extFlag])<0.0000000000001) {extFlag--;}
-    // cout << " extFlag " << extFlag << endl;
-    // if(direction==false) {
-    //   while(extFlag>0 && zVal[0]<=zz[extFlag]) {extFlag--;}
-    //   if(extFlag>=0){
-    // 	if(zVal[1]<=zz[extFlag] && zVal[0]>=zz[extFlag]) {
-    // 	  temp_xext[extFlag] = xVal[1];
-    // 	  temp_yext[extFlag] = yVal[1];
-    // 	  temp_momext[extFlag] = MomDir;
-    // 	  // cout << " extFlag " << extFlag
-    // 	  //      << " xext " << temp_xext[extFlag]/strpwidth
-    // 	  //      << endl;
-    // 	}
-    //   }
-    // } else {
-    //   while(extFlag<nlayer-1 && zVal[0]>zz[extFlag]) {extFlag++;}
-    //   if(extFlag<=nlayer-1){
-    // 	if(zVal[0]<=zz[extFlag] && zVal[1]>=zz[extFlag]) {
-    // 	  temp_xext[extFlag] = xVal[0];
-    // 	  temp_yext[extFlag] = yVal[0];
-    // 	  temp_momext[extFlag] = MomDir;
-    // 	  // cout << " extFlag " << extFlag
-    // 	  //      << " xext " << temp_xext[extFlag]/strpwidth
-    // 	  //      << endl;
-    // 	}
-    //   }
-    // }
-    // while(extFlag>0 && zVal[0]<=zz[extFlag]) {extFlag--;}
-    
-    
+            
     // vxVal[1] = vxVal[0]+axVal[0]*timeStepFit*(direction==false?1.:-1.);
     // vyVal[1] = vyVal[0]+ayVal[0]*timeStepFit*(direction==false?1.:-1.);
     // vzVal[1] = vzVal[0]+azVal[0]*timeStepFit*(direction==false?1.:-1.);
@@ -1402,18 +1335,28 @@ void PropagateTrack(TrackInfo &inPoints) {
     azVal[1] = (fitCharge/(gammaF*muMass))*(vxVal[1]*MagField.Y()-vyVal[1]*MagField.X());
     
     for(int ij=0;ij<totalPts;ij++) {
-      // double dist = sqrt(pow(inPoints.hits[ij].posXY[0]-xVal[1],2)+pow(inPoints.hits[ij].posXY[1]-yVal[1],2)+pow(inPoints.hits[ij].posZ-zVal[1],2));
-      ttxx = inPoints.xyzpos[ij];
-      ttyy.SetXYZ(xVal[1],yVal[1],zVal[1]);
-      double dist = calPointDist(ttxx,ttyy);
-      // cout << " dist " << cn << " " << ij << " " << dist/strpwidth << " " << temp_minDist[ij]/strpwidth;
-      if(temp_minDist[ij]>dist) {
-	temp_minDist[ij] = dist;
-	temp_minDist_wt[ij] = 1./pow(TMath::E(),totalTime);
-	// temp_minDist_wt[ij] = 1./pow(TMath::E(),pow(totalTime,TMath::E()));
+      double lowz  = TMath::Min(zVal[0], zVal[1]);
+      double highz = TMath::Max(zVal[0], zVal[1]);
+      if(lowz  <= inPoints.xyzpos[ij].Z() &&
+	 highz >= inPoints.xyzpos[ij].Z()) {
+	/** interpolate x and y in the layer */
+	temp_xext[ij] = xVal[0] +
+	  (xVal[1] - xVal[0]) * ((inPoints.xyzpos[ij].Z() - zVal[0]) /
+				 (zVal[1]                 - zVal[0]));
+        temp_yext[ij] = yVal[0] +
+	  (yVal[1] - yVal[0]) * ((inPoints.xyzpos[ij].Z() - zVal[0]) /
+				 (zVal[1]                 - zVal[0]));
+	temp_minDist[ij] =
+	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
+	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
+	temp_momext[ij] = MomDir;
+    	temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
+	// cout << " ij " << ij
+	//      << " xext " << temp_xext[ij]/strpwidth
+	//      << " xext " << temp_yext[ij]/strpwidth
+	//      << endl;
+	break;
       }
-      // cout << " ij " << ij << " " << temp_minDist[ij]/strpwidth << endl;
-      
     } // for(int ij=0;ij<totalPts;ij++) {
     
     xVal[0] = xVal[1];
@@ -1450,30 +1393,21 @@ void PropagateTrack(TrackInfo &inPoints) {
   double xysumW[nside] = {0};
   double leastDist = 100., mostDist = 0;
   for(int ij=0;ij<totalPts;ij++) {
-    if(temp_minDist[ij]<1000.) {
-      // chi2Each += temp_minDist[ij]<1000. ? pow(temp_minDist[ij],2.) : 0.;
-      // double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
-      // sumW += 1./(inPoints.hits[ij].poserrXY[0]+inPoints.hits[ij].poserrXY[1]);
+    if(temp_xext[ij]>-1000.) {
+      double ttDistEr =
+	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
+	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
 
-      // cout<<" "<<ij<<" mindist "<<temp_minDist[ij]<<" "<<temp_minDist_wt[ij]<<endl;
-      double ttDistEr = pow(temp_minDist[ij],2.)/(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
       chi2EachMax = TMath::Max(chi2EachMax,ttDistEr);
       chi2EachMin = TMath::Max(chi2EachMin,ttDistEr);
-      chi2Each += ttDistEr * temp_minDist_wt[ij];
+
+      chi2Each += ttDistEr * temp_trk_wt[ij];
       chi2EachNew = chi2EachNew==0?ttDistEr:chi2EachNew*ttDistEr;
       
       sumW += 1./(inPoints.xyerr[ij].X()+inPoints.xyerr[ij].Y());
       if(leastDist>ttDistEr) {leastDist = ttDistEr;}
       if(mostDist<ttDistEr) {mostDist = ttDistEr;}
     }
-    // if(fabs(temp_xext[inPoints.hits[ij].posZi])<2
-    //    && fabs(temp_yext[inPoints.hits[ij].posZi])<2) {
-    //   xychi2Each[0] += pow(inPoints.hits[ij].posXY[0]-temp_xext[inPoints.hits[ij].posZi],2)/inPoints.hits[ij].poserrXY[0];
-    //   xychi2Each[1] += pow(inPoints.hits[ij].posXY[1]-temp_yext[inPoints.hits[ij].posZi],2)/inPoints.hits[ij].poserrXY[1];
-    //   xysumW[0] += 1./inPoints.hits[ij].poserrXY[0];
-    //   xysumW[1] += 1./inPoints.hits[ij].poserrXY[1];
-    // } // if(temp_minDist[ij]<1000.) {
-    
     // cout << " ij " << ij
     // 	 << " x " << inPoints.hits[ij].posX/strpwidth
     // 	 << " y " << inPoints.hits[ij].posY/strpwidth
@@ -1519,7 +1453,7 @@ void PropagateTrack(TrackInfo &inPoints) {
     // cout << ij << endl;
   }
   // cout << inPoints.ndfout << endl;
-  for(int ij=0;ij<nlayer;ij++) {
+  for(int ij=0;ij<totalPts;ij++) {
     inPoints.xyext[0][ij] = temp_xext[ij];
     inPoints.xyext[1][ij] = temp_yext[ij];
     inPoints.momext[ij].SetMagThetaPhi(temp_momext[ij].Mag()*cval1/gevtojoule,temp_momext[ij].Theta(),temp_momext[ij].Phi());
