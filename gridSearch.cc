@@ -10,6 +10,7 @@ gridSearch::gridSearch(Int_t maxpar) {
   fParStep   = new Double_t[fMaxPar];
   fParLimLow = new Double_t[fMaxPar];
   fParLimUp  = new Double_t[fMaxPar];
+  fParVal    = new Double_t[fMaxPar];
 
   fFCN       = 0;
   fIter      = 1;
@@ -32,15 +33,12 @@ void gridSearch::SetFCN(void (*fcn)(Int_t &, Double_t *, Double_t &f, Double_t *
 }
 
 void gridSearch::SetParams(Int_t kpar, TString parname, Double_t vstart, Double_t vstep, Double_t vlow, Double_t vup) {
-
   if(kpar<fMaxPar) {
     fParNames[kpar]  = parname;
     fParStart[kpar]  = vstart;
     fParStep[kpar]   = vstep;
     fParLimLow[kpar] = vlow;
     fParLimUp[kpar]  = vup;
-
-    fParVal[kpar]    = vstart;
   }
 }
 
@@ -87,18 +85,19 @@ void gridSearch::DoMinimization() {
 	int fDir = 0;
 	if(!fForward) {fDir = 1;} else {fDir = -1;}
 	
-	tempPars[ijpar] += fParStep[ijpar]*fDir/(iter + 1);
+	tempPars[ijpar] += fParStep[ijpar]*fDir/(iter + 1.);
+	if(tempPars[ijpar]>fParLimUp[ijpar] ||
+	   tempPars[ijpar]<fParLimLow[ijpar]) {break;}
 	
 	int tmpnpar = 0;
 	Eval(tmpnpar, gin, fnew, tempPars, tmpnpar);
 	if(fnew<prevchi2) {
-	  for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
-	    prevPars[ijpar] = tempPars[ijpar];}
+	  prevPars[ijpar] = tempPars[ijpar];
 	  prevchi2 = fnew;
 	} else {
 	  if(!fForward) {fForward = true;} else if(!fBackward) {fBackward = true;}
 	}
-      }
+      }	// while(1) {
     } // for(int ijpar=0;ijpar<5;ijpar++) {
     prevchi2 = 10000;
   } // for(int iter=0;iter<iter;iter++) {
@@ -109,6 +108,56 @@ void gridSearch::DoMinimization() {
 
   delete [] prevPars;
   delete [] tempPars;
+  delete [] gin;
+    
+}
+
+
+void gridSearch::DoMinimizationFullRange(Int_t range) {
+  
+  double prevchi2 = 10000;
+  double fnew;
+  
+  double* tempPars = new double[fMaxPar];
+  double* prevPars = new double[fMaxPar];
+  double* gin      = new double[fMaxPar];
+  for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
+    tempPars[ijpar] = fParStart[ijpar];
+    prevPars[ijpar] = fParStart[ijpar];}
+
+  for(int iter=0;iter<fIter;iter++) {
+    
+    for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
+
+      double tPeriod = (fParLimUp[ijpar] - fParLimLow[ijpar]);
+      int fullRange;
+      if(range) fullRange = range;
+      else fullRange = int(tPeriod / fParStep[ijpar]);
+      
+      tPeriod /= TMath::Power(5., iter);
+
+      for(int tr=0; tr<fullRange; tr++) {
+	
+	tempPars[ijpar] = (prevPars[ijpar] - 0.5 * tPeriod +
+			   tr * tPeriod / (fullRange + 1.));
+	
+	int tmpnpar = 0;
+	Eval(tmpnpar, gin, fnew, tempPars, tmpnpar);
+	if(fnew<prevchi2) {
+	  prevPars[ijpar] = tempPars[ijpar];
+	  prevchi2 = fnew;
+	}
+      }	// for(int tr=0; tr<fullRange; tr++) {
+    } // for(int ijpar=0;ijpar<5;ijpar++) {
+    prevchi2 = 10000;
+  } // for(int iter=0;iter<iter;iter++) {
+  
+  for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
+    fParVal[ijpar] = prevPars[ijpar];}
+  fChi2 = fnew;
+
+  delete [] tempPars;
+  delete [] prevPars;
   delete [] gin;
     
 }

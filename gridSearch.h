@@ -22,6 +22,7 @@ class gridSearch {
   void   SetParams(Int_t kpar, TString parname, Double_t vstart, Double_t vstep, Double_t vlow, Double_t vup);
   void   GetParams(Int_t kpar, TString &parname, Double_t &val, Double_t &err) const;
   void   DoMinimization();
+  void   DoMinimizationFullRange(Int_t range);
   double GetChi2();
   
  private:

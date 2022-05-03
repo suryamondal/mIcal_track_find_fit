@@ -4625,6 +4625,7 @@ int main(int argc, char** argv) {
 		  "pmag","ptheta","pphi"};
 
 #ifndef isGridSearch
+
 	       TMinuit *tMinuit = new TMinuit(5);
 	       tMinuit->SetPrintLevel(-1);
 	       tMinuit->SetFCN(fcn);
@@ -4720,12 +4721,13 @@ int main(int argc, char** argv) {
 			     vstart[npr], vstep[npr],
 			     vlimL[npr], vlimU[npr]);
 	       }
+	       searchPars->SetIter(5);
 	       searchPars->DoMinimization();
+	       // searchPars->DoMinimizationFullRange(40);
 	       
 	       TString tmpname;
 	       Double_t parval[5];
 	       Double_t parerr[5];
-	       Double_t lupval, llowval;
 	
 	       for(int npr=0;npr<5;npr++) {
 		 searchPars->GetParams(npr ,tmpname,
@@ -4759,17 +4761,17 @@ int main(int argc, char** argv) {
 
 #endif	// #ifndef isGridSearch
 	       	       
-#ifdef isSimData
-	       if(nhits_finder>5) {
-	       	 cout<<" iev "<<iev
-	       	     <<" momin "<<momInFill
-	       	     <<" momout "<<momout<<" err "<<momerr
-	       	     <<" eloss "<< eloss
-	       	     <<" nhits "<<nhits_finder
-	       	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
-	       	     <<endl<<endl;
-	       }
-#endif
+// #ifdef isSimData
+// 	       if(nhits_finder>5) {
+// 	       	 cout<<" iev "<<iev
+// 	       	     <<" momin "<<momInFill
+// 	       	     <<" momout "<<momout<<" err "<<momerr
+// 	       	     <<" eloss "<< eloss
+// 	       	     <<" nhits "<<nhits_finder
+// 	       	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
+// 	       	     <<endl<<endl;
+// 	       }
+// #endif
 	       
 #endif	// #ifndef isLifetime
 	       
