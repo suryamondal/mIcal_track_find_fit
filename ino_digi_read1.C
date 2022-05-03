@@ -23,6 +23,7 @@
 
 // #define isRungeKutta
 #define isEloss
+#define isGridSearch
 
 #define isAnalysis
 // #define isCorrection		// reconstrution happens if not define
@@ -94,6 +95,7 @@
 // #include "CircleFitByLevenbergMarquardtReduced.cpp"
 // #include <time.h>
 
+#include "gridSearch.h"
 
 
 using namespace std;
@@ -4621,7 +4623,8 @@ int main(int argc, char** argv) {
 	       vector<TString> parnames =
 		 {"vx","vy",
 		  "pmag","ptheta","pphi"};
-	       
+
+#ifndef isGridSearch
 	       TMinuit *tMinuit = new TMinuit(5);
 	       tMinuit->SetPrintLevel(-1);
 	       tMinuit->SetFCN(fcn);
@@ -4703,20 +4706,70 @@ int main(int argc, char** argv) {
 	       // dEdx   = parval[5];
 	       // dEdxerr = parerr[5];
 	       eloss = inPoints1.energyLoss;
-	       
-#ifdef isSimData
-	       // if(nhits_finder>5) {
-	       // 	 cout<<" iev "<<iev
-	       // 	     <<" momin "<<momInFill
-	       // 	     <<" momout "<<momout<<" err "<<momerr
-	       // 	     <<" eloss "<< eloss
-	       // 	     <<" nhits "<<nhits_finder
-	       // 	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
-	       // 	     <<endl<<endl;
-	       // }
-#endif
 
 	       if(tMinuit) {delete tMinuit;}
+
+#else  // #ifndef isGridSearch
+	       
+	       gridSearch *searchPars = new gridSearch(5);
+	       searchPars->SetFCN(fcn);
+	
+	       for(int npr=0;npr<5;npr++) {
+		 searchPars->
+		   SetParams(npr, parnames[npr],
+			     vstart[npr], vstep[npr],
+			     vlimL[npr], vlimU[npr]);
+	       }
+	       searchPars->DoMinimization();
+	       
+	       TString tmpname;
+	       Double_t parval[5];
+	       Double_t parerr[5];
+	       Double_t lupval, llowval;
+	
+	       for(int npr=0;npr<5;npr++) {
+		 searchPars->GetParams(npr ,tmpname,
+				       parval[npr], parerr[npr]);
+		 // cout << " par " << npr
+		 //      << " " << parnames[npr]
+		 //      << " " << parval[npr]
+		 //      << " " << parerr[npr]
+		 //      << endl;
+	       }
+	       
+	       /* final propagation */
+	       inPoints1.ipos[0] = parval[0];
+	       inPoints1.ipos[1] = parval[1];
+	       inPoints1.iMom.SetMagThetaPhi(parval[2],parval[3],parval[4]);
+	       PropagateTrack(inPoints1);
+	       
+	       chi2n = inPoints1.chi2;
+	       // nhits_finder = ndfi;
+	       momout = parval[2]*inPoints1.charge;
+	       momerr = parerr[2];
+	       theout = parval[3];
+	       theerr = parerr[3];
+	       phiout = parval[4];
+	       phierr = parerr[4];
+	       // dEdx   = parval[5];
+	       // dEdxerr = parerr[5];
+	       eloss = inPoints1.energyLoss;
+
+	       if(searchPars) {delete searchPars;}
+
+#endif	// #ifndef isGridSearch
+	       	       
+#ifdef isSimData
+	       if(nhits_finder>5) {
+	       	 cout<<" iev "<<iev
+	       	     <<" momin "<<momInFill
+	       	     <<" momout "<<momout<<" err "<<momerr
+	       	     <<" eloss "<< eloss
+	       	     <<" nhits "<<nhits_finder
+	       	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
+	       	     <<endl<<endl;
+	       }
+#endif
 	       
 #endif	// #ifndef isLifetime
 	       
