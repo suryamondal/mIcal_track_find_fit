@@ -1055,8 +1055,8 @@ void PropagateTrack(TrackInfo &inPoints) {
 	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
-    	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
-    	temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
+    	temp_trk_wt[ij] = TMath::Exp(-totalTime);
+    	// temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
@@ -1113,8 +1113,8 @@ void PropagateTrack(TrackInfo &inPoints) {
   for(int ij=0;ij<totalPts;ij++) {
     if(temp_xext[ij]>-1000.) {
       double ttDistEr =
-	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
-	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
+	(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
+	 pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
       // cout<<" ij "<<ij
       // 	  <<" xdev "<<temp_xext[ij]-inPoints.xyzpos[ij].X()
       // 	  <<" ydev "<<temp_yext[ij]-inPoints.xyzpos[ij].Y()
@@ -1356,8 +1356,8 @@ void PropagateTrack(TrackInfo &inPoints) {
 	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
-    	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
-    	temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
+    	temp_trk_wt[ij] = TMath::Exp(-totalTime);
+    	// temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
@@ -1403,8 +1403,8 @@ void PropagateTrack(TrackInfo &inPoints) {
   for(int ij=0;ij<totalPts;ij++) {
     if(temp_xext[ij]>-1000.) {
       double ttDistEr =
-	sqrt(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
-	     pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
+	(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
+	 pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
       // cout<<" ij "<<ij
       // 	  <<" xdev "<<temp_xext[ij]-inPoints.xyzpos[ij].X()
       // 	  <<" ydev "<<temp_yext[ij]-inPoints.xyzpos[ij].Y()
@@ -4705,15 +4705,15 @@ int main(int argc, char** argv) {
 	       eloss = inPoints1.energyLoss;
 	       
 #ifdef isSimData
-	       // if(nhits_finder>5) {
-	       // 	 cout<<" iev "<<iev
-	       // 	     <<" momin "<<momInFill
-	       // 	     <<" momout "<<momout<<" err "<<momerr
-	       // 	     <<" eloss "<< eloss
-	       // 	     <<" nhits "<<nhits_finder
-	       // 	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
-	       // 	     <<endl<<endl;
-	       // }
+	       if(nhits_finder>5) {
+	       	 cout<<" iev "<<iev
+	       	     <<" momin "<<momInFill
+	       	     <<" momout "<<momout<<" err "<<momerr
+	       	     <<" eloss "<< eloss
+	       	     <<" nhits "<<nhits_finder
+	       	     <<" chi2ndf "<<chi2n/(nhits_finder-5.)
+	       	     <<endl<<endl;
+	       }
 #endif
 
 	       if(tMinuit) {delete tMinuit;}
