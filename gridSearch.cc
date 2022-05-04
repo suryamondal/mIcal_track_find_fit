@@ -123,7 +123,8 @@ void gridSearch::DoMinimizationFullRange(Int_t range) {
   double* gin      = new double[fMaxPar];
   for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
     tempPars[ijpar] = fParStart[ijpar];
-    prevPars[ijpar] = fParStart[ijpar];}
+    prevPars[ijpar] = fParStart[ijpar];
+    fParVal[ijpar]  = fParStart[ijpar];}
 
   for(int iter=0;iter<fIter;iter++) {
     
@@ -138,7 +139,7 @@ void gridSearch::DoMinimizationFullRange(Int_t range) {
 
       for(int tr=0; tr<fullRange; tr++) {
 	
-	tempPars[ijpar] = (prevPars[ijpar] - 0.5 * tPeriod +
+	tempPars[ijpar] = (fParVal[ijpar] - 0.5 * tPeriod +
 			   tr * tPeriod / (fullRange + 1.));
 	
 	int tmpnpar = 0;
@@ -149,13 +150,12 @@ void gridSearch::DoMinimizationFullRange(Int_t range) {
 	}
       }	// for(int tr=0; tr<fullRange; tr++) {
     } // for(int ijpar=0;ijpar<5;ijpar++) {
+    for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
+      fParVal[ijpar] = prevPars[ijpar];}
+    fChi2 = fnew;
     prevchi2 = 10000;
   } // for(int iter=0;iter<iter;iter++) {
   
-  for(int ijpar=0;ijpar<fMaxPar;ijpar++) {
-    fParVal[ijpar] = prevPars[ijpar];}
-  fChi2 = fnew;
-
   delete [] tempPars;
   delete [] prevPars;
   delete [] gin;
