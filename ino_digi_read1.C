@@ -22,7 +22,7 @@
 #define isTDCstrpCorr
 
 // #define isRungeKutta
-#define isEloss
+// #define isEloss
 
 #define isAnalysis
 // #define isCorrection		// reconstrution happens if not define
