@@ -1056,7 +1056,7 @@ void PropagateTrack(TrackInfo &inPoints) {
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
     	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
-    	temp_trk_wt[ij] = MomDir.Mag()/sqrt(1. + totalTime/(ironThickness + airGap));
+    	temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
@@ -1112,6 +1112,19 @@ void PropagateTrack(TrackInfo &inPoints) {
   double leastDist = 100., mostDist = 0;
   for(int ij=0;ij<totalPts;ij++) {
     if(temp_xext[ij]>-1000.) {
+      double ttDistEr =
+	pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.) /
+	inPoints.xyerr[ij].X();
+      xychi2Each[0] += ttDistEr * temp_trk_wt[ij];
+    }
+    if(temp_yext[ij]>-1000.) {
+      double ttDistEr =
+	pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.) /
+	inPoints.xyerr[ij].Y();
+      xychi2Each[1] += ttDistEr * temp_trk_wt[ij];
+    }
+    
+    if(temp_xext[ij]>-1000. && temp_yext[ij]>-1000.) {
       double ttDistEr =
 	(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
 	 pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
@@ -1357,7 +1370,7 @@ void PropagateTrack(TrackInfo &inPoints) {
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
     	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
-    	temp_trk_wt[ij] = tmpMag/sqrt(1. + totalTime/(ironThickness + airGap));
+    	temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
@@ -1401,6 +1414,19 @@ void PropagateTrack(TrackInfo &inPoints) {
   double xysumW[nside] = {0};
   double leastDist = 100., mostDist = 0;
   for(int ij=0;ij<totalPts;ij++) {
+    if(temp_xext[ij]>-1000.) {
+      double ttDistEr =
+	pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.) /
+	inPoints.xyerr[ij].X();
+      xychi2Each[0] += ttDistEr * temp_trk_wt[ij];
+    }
+    if(temp_yext[ij]>-1000.) {
+      double ttDistEr =
+	pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.) /
+	inPoints.xyerr[ij].Y();
+      xychi2Each[1] += ttDistEr * temp_trk_wt[ij];
+    }
+
     if(temp_xext[ij]>-1000.) {
       double ttDistEr =
 	(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
@@ -1504,9 +1530,7 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
 
   PropagateTrack(inPoints1);
 
-  f = inPoints1.chi2;
-  // f = inPoints1.chi2 - inPoints1.whichMax;
-  // f = inPoints1.chi2new;
+  f = TMath::Max(inPoints1.xychi2[0], inPoints1.xychi2[1]);
   
   // cout << " " << par[0]
   //      << " " << par[1]
