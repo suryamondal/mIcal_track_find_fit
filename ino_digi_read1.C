@@ -1427,7 +1427,7 @@ void PropagateTrack(TrackInfo &inPoints) {
       xychi2Each[1] += ttDistEr * temp_trk_wt[ij];
     }
 
-    if(temp_xext[ij]>-1000.) {
+    if(temp_xext[ij]>-1000. && temp_yext[ij]>-1000.) {
       double ttDistEr =
 	(pow(temp_xext[ij]-inPoints.xyzpos[ij].X(),2.)/inPoints.xyerr[ij].X() +
 	 pow(temp_yext[ij]-inPoints.xyzpos[ij].Y(),2.)/inPoints.xyerr[ij].Y());
