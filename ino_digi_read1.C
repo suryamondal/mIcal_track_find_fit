@@ -1055,9 +1055,9 @@ void PropagateTrack(TrackInfo &inPoints) {
 	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
-    	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
+    	temp_trk_wt[ij] = TMath::Exp(-totalTime);
     	// temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
-    	temp_trk_wt[ij] = 1.;
+    	// temp_trk_wt[ij] = 1.;
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
@@ -1370,9 +1370,9 @@ void PropagateTrack(TrackInfo &inPoints) {
 	  sqrt(pow(temp_xext[ij] - inPoints.xyzpos[ij].X(),2.) +
 	       pow(temp_yext[ij] - inPoints.xyzpos[ij].Y(),2.));
 	temp_momext[ij] = MomDir;
-    	// temp_trk_wt[ij] = TMath::Exp(-totalTime);
+    	temp_trk_wt[ij] = TMath::Exp(-totalTime);
     	// temp_trk_wt[ij] = 1./sqrt(1. + totalTime/(ironThickness + airGap));
-    	temp_trk_wt[ij] = 1.;
+    	// temp_trk_wt[ij] = 1.;
     	// temp_trk_wt[ij] = 1./pow(TMath::E(),sqrt(totalTime));
 	// cout << " ij " << ij
 	//      << " xext " << temp_xext[ij]/strpwidth
