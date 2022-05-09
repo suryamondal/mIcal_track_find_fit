@@ -22,6 +22,6 @@ if __name__ == "__main__":
         print(f"Output = {output}")
         titles = ",".join(f'"{x}"' for x in args[::2])
         files = ",".join(f'"{x}"' for x in args[1::2])
-        macro = f'EfficiencyComparison.C("{output}",{{{files}}},{{{titles}}})'
+        macro = f'SigmaComparison.C("{output}",{{{files}}},{{{titles}}})'
         cl = ['root', '-l', '-b', '-q', macro]
         sys.exit(subprocess.run(cl).returncode)
