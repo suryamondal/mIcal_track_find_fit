@@ -99,20 +99,28 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
     }
     
     auto ddf = ddd.Filter(cuts.Data());
-
+	  
+    const int nbinx   = 60;
+    const double xmin = -6.;
+    const double xmax =  6.;
+    const int nbiny   = 1200;
+    const double ymin = -6.;
+    const double ymax =  6;
+	  
     auto mom_cor =
       ddd.Histo2D(ROOT::RDF::TH2DModel(TString(titles[ij]).ReplaceAll(" ","_").Data(),
-				       titles[ij].Data(), 60, -6., 6., 1200, -6., 6.),
+				       titles[ij].Data(), xbinx, xmin, xmax, ybinx, ymin, ymax),
 		  "momin", "momout");
     mom_cors.push_back((TH2D*)&(*mom_cor));
-
-    TH1D *mom_sigma = new TH1D((TString(titles[ij]).ReplaceAll(" ","_") + "_sigma_{68}").Data(),
-			       (titles[ij] + " sigma_{68}").Data(), 60, -6, 6);
+	  
+    TH1D *mom_sigma = new TH1D((TString(titles[ij]).ReplaceAll(" ","_") +
+				TString::Format("_sigma{%.0f}",sigmaval)).Data(),
+			       (titles[ij] + TString::Format(" #sigma_{%.0f}",sigmaval)).Data(),
+			       xbinx, xmin, xmax);
     TH1D *mom_mean  = new TH1D((TString(titles[ij]).ReplaceAll(" ","_") + "_mean").Data(),
-			       (titles[ij] + " sigma_{68} mean").Data(), 60, -6, 6);
+			       (titles[ij] + TString::Format(" #sigma_{%.0f} mean",sigmaval)).Data(),
+			       xbinx, xmin, xmax);
     
-    const int nbinx = mom_cors.back()->GetNbinsX();
-
     for(int nx=0; nx<nbinx;nx++) {
 
       TH1D *h = (TH1D*) mom_cors.back()->ProjectionY("",nx+1,nx+1);
