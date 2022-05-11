@@ -32,6 +32,8 @@ vector<TString> Ls(TDirectory* d)
 
 void setStyle()
 {
+  gStyle->SetOptStat(0);
+  gStyle->SetPalette(1);
   gStyle->SetTextFont(Font);
   gStyle->SetTextSize(TSize);
   gStyle->SetLabelFont(Font, "xyz");
@@ -72,12 +74,13 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   double sigmaval = 68.;
   TString nhits_cut = "n_nhits > 5";
   TString chi2_cut = "n_chi2/(n_nhits - 5.) < 10.";
+  TString mom_cut = "n_momin * n_momout > 0.";
 
   TString cuts =
-    nhits_cut + " && " + chi2_cut;
+    nhits_cut + " && " + chi2_cut + " && " + mom_cut;
   
   // Open files
-  vector<TH2D*> mom_cors;
+  vector<ROOT::RDF::RResultPtr<TH2D>> mom_cors;
   vector<TH1D*> sigmas, means;
   for (int ij=0; ij<int(filesNames.size());ij++) {
     
@@ -127,10 +130,11 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
     const double ymax =  6;
 
     auto mom_cor =
-      ddf.Histo2D(ROOT::RDF::TH2DModel(TString(titles[ij]).ReplaceAll(" ","_").Data(),
+      ddf.Define("n_p_residual","n_momin - n_momout")
+         .Histo2D(ROOT::RDF::TH2DModel(TString(titles[ij]).ReplaceAll(" ","_").Data(),
 				       titles[ij].Data(), nbinx, xmin, xmax, nbiny, ymin, ymax),
-		  "n_momin", "n_momout");
-    mom_cors.push_back((TH2D*)&(*mom_cor));
+		  "n_momin", "n_p_residual");
+    mom_cors.push_back(mom_cor);
 
     TH1D *mom_sigma = new TH1D((TString(titles[ij]).ReplaceAll(" ","_") +
 				TString::Format("_sigma%.0f",sigmaval)).Data(),
@@ -147,6 +151,8 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
       TH1D *h = (TH1D*) mom_cors.back()->ProjectionY("",nx+1,nx+1);
       
       const double samples = h->GetEntries();
+      if(samples < 50) {continue;}
+
       const double remainder = (100.0 - sigmaval) / 200.0;
       int binLow, binUp;
       double accuLow, accuUp;
@@ -162,7 +168,7 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
       const double xWidth = (xUp - xLow) / 2.0;
       const double xCenter = (xUp + xLow) / 2.0;
       const double xErr = h->GetBinWidth(1);
-      std::cout<<" nx "<<nx<<" xWidth "<<xWidth<<" xCenter "<<xCenter<<std::endl;
+      // std::cout<<" nx "<<nx<<" xWidth "<<xWidth<<" xCenter "<<xCenter<<std::endl;
 
       mom_mean->SetBinContent(nx+1,xCenter);
       mom_sigma->SetBinContent(nx+1,xWidth);
@@ -180,7 +186,7 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   // TFile *outfile = TFile::Open(outPDF.ReplaceAll(".pdf",".root").Data(),"RECREATE");
   // outfile->cd();
   // for (int ij=0; ij<int(sigmas.size());ij++) {
-  //   // mom_cors[ij]->Write();
+  //   mom_cors[ij]->Write();
   //   sigmas.at(ij)->Write();
   //   means.at(ij)->Write();
   // } // for (int ij=0; ij<int(sigmas.size());ij++) {
@@ -191,6 +197,7 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   topPad.cd();
 
   TLegend leg(0.65, 0.85 - 0.06 * (sigmas.size() + 1), 0.93, 0.85);
+  leg.SetFillStyle(0);
 
   int icol = 0;
   for (int i = 0; i < sigmas.size(); i++) {
@@ -205,6 +212,34 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   topPad.SetGrid();
 
   c.Print(outPDF, TString("Title:") + sigmas[0]->GetTitle());
+
+
+  TLegend leg1(0.65, 0.85 - 0.06 * (sigmas.size() + 1), 0.93, 0.85);
+  leg1.SetFillStyle(0);
+
+  icol = 0;
+  for (int i = 0; i < means.size(); i++) {
+    icol ++; if(icol == 5) icol++;
+    means[i]->SetLineColor(icol);
+    // means[i]->SetLineWidth(i == 0 ? 2 : 1);
+    means[i]->SetMarkerColor(icol);
+    leg1.AddEntry(means[i], titles.at(i), "LE");
+    means[i]->Draw(!i ? "" : "same");
+  }
+  leg1.Draw();
+  topPad.SetGrid();
+
+  c.Print(outPDF, TString("Title:") + means[0]->GetTitle());
+
+
+  for (int i = 0; i < mom_cors.size(); i++) {
+    topPad.cd();
+    mom_cors[i]->Draw("COLZ");
+    topPad.SetGrid();
+    c.Print(outPDF, TString("Title:") + mom_cors[i]->GetTitle());
+  }
+
+
 
     
   // for (int ij=0; ij<int(sigmas.size());ij++) {

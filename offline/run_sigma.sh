@@ -3,7 +3,7 @@
 
 filelist=(
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_512Lakh_7dd7f63.root"
-    # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_606Lakh_c3b9d93.root"
+    "../outputrootfiles/corsika76300_FLUKA_SIBYLL_606Lakh_c3b9d93.root"
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_614Lakh_4b097e5.root"
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_146Lakh_2aaa127.root"
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_1665Lakh_529aa33.root"
@@ -15,6 +15,7 @@ filelist=(
 )
 
 fileTags=(
+    "d0\ minimize\ sqrt\ wt"
     "xy\ minimize\ sqrt\ wt"
     "xy\ minimize\ no\ wt"
     "xy\ minimize\ exp\ wt"
