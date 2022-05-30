@@ -71,16 +71,30 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   topPad.Draw();
   btmPad.Draw();
 
+  TCanvas c1("c1", "c1", 640, 480);
+  // c1.Print(outPDF + "[");
+  TPad onePad("onePad", "onePad", 0, 0, 1, 1, kWhite);
+  onePad.Range(-1.257796,-45.36986,1.349272,404.3836);
+  onePad.SetFillColor(0);
+  onePad.SetBorderMode(0);
+  onePad.SetBorderSize(2);
+  onePad.SetRightMargin(0.1339713);
+  onePad.SetFrameBorderMode(0);
+  onePad.SetFrameBorderMode(0);
+  onePad.SetNumber(1);
+  onePad.Draw();
+
   double sigmaval = 68.;
   TString nhits_cut = "n_nhits > 5";
   TString chi2_cut = "n_chi2/(n_nhits - 5.) < 10.";
   TString mom_cut = "n_momin * n_momout > 0.";
 
   TString cuts =
-    nhits_cut + " && " + chi2_cut + " && " + mom_cut;
+    nhits_cut + " && " + chi2_cut;
   
   // Open files
   vector<ROOT::RDF::RResultPtr<TH2D>> mom_cors;
+  vector<ROOT::RDF::RResultPtr<TH2D>> mom_response;
   vector<TH1D*> sigmas, means;
   for (int ij=0; ij<int(filesNames.size());ij++) {
     
@@ -122,19 +136,27 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
     // }
     // ddf = ddd.Filter(cuts.Data(),"chi2ndf_cut");
 
-    const int nbinx   = 60;
-    const double xmin = -6.;
-    const double xmax =  6.;
-    const int nbiny   = 1200;
-    const double ymin = -6.;
-    const double ymax =  6;
+    int nbinx   =  40;
+    double xmin = -4.;
+    double xmax =  4.;
+    int nbiny   = 500;
+    double ymin = -1.;
+    double ymax =  4.;
 
     auto mom_cor =
-      ddf.Define("n_p_residual","n_momin - n_momout")
+      ddf.Filter(mom_cut.Data())
+         // .Define("n_p_residual","n_momin - n_momout")
+         .Define("n_p_residual", [](Float_t in, Float_t out) {Float_t res = in - out; if(in<0) {res *= -1;} return res;}, {"n_momin", "n_momout"})
          .Histo2D(ROOT::RDF::TH2DModel(TString(titles[ij]).ReplaceAll(" ","_").Data(),
 				       titles[ij].Data(), nbinx, xmin, xmax, nbiny, ymin, ymax),
 		  "n_momin", "n_p_residual");
     mom_cors.push_back(mom_cor);
+
+    auto mom_res =
+      ddf.Histo2D(ROOT::RDF::TH2DModel((TString(titles[ij]).ReplaceAll(" ","_") + "_response").Data(),
+				       (titles[ij] + " response").Data(), 80, -4, 4, 80, -4, 4),
+		  "n_momout", "n_momin");
+    mom_response.push_back(mom_res);
 
     TH1D *mom_sigma = new TH1D((TString(titles[ij]).ReplaceAll(" ","_") +
 				TString::Format("_sigma%.0f",sigmaval)).Data(),
@@ -149,11 +171,21 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
     for(int nx=0; nx<nbinx;nx++) {
 
       TH1D *h = (TH1D*) mom_cors.back()->ProjectionY("",nx+1,nx+1);
+
+      h->SetBinContent(0,0);
+      h->SetBinContent(nbiny,0);
+      // double hmaxval = h->GetMaximum();
+      // for(int ny=0; ny<nbiny;ny++) {
+      // 	if(h->GetBinContent(ny+1)<0.01*hmaxval) {
+      // 	  h->SetBinContent(ny+1,0);
+      // 	}
+      // }
       
-      const double samples = h->GetEntries();
+      // double samples = h->GetEntries();
+      double samples = h->GetSumOfWeights();
       if(samples < 50) {continue;}
 
-      const double remainder = (100.0 - sigmaval) / 200.0;
+      double remainder = (100.0 - sigmaval) / 200.0;
       int binLow, binUp;
       double accuLow, accuUp;
       for (accuLow = 0.0, binLow = 0; binLow < h->GetNbinsX() + 1; binLow++)
@@ -163,11 +195,11 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
 	if ((accuUp += h->GetBinContent(binUp)) / samples >= remainder)
 	  break;
       // Interval -> from up edge of binLow to low edge of binUp
-      const double xLow = h->GetBinLowEdge(binLow + 1);
-      const double xUp = h->GetBinLowEdge(binUp);
-      const double xWidth = (xUp - xLow) / 2.0;
-      const double xCenter = (xUp + xLow) / 2.0;
-      const double xErr = h->GetBinWidth(1);
+      double xLow = h->GetBinLowEdge(binLow + 1);
+      double xUp = h->GetBinLowEdge(binUp);
+      double xWidth = (xUp - xLow) / 2.0;
+      double xCenter = (xUp + xLow) / 2.0;
+      double xErr = h->GetBinWidth(1);
       // std::cout<<" nx "<<nx<<" xWidth "<<xWidth<<" xCenter "<<xCenter<<std::endl;
 
       mom_mean->SetBinContent(nx+1,xCenter);
@@ -211,8 +243,21 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   leg.Draw();
   topPad.SetGrid();
 
+  btmPad.cd();
+  TH1D* hRatio = (TH1D*)sigmas.at(0)->Clone(sigmas.at(0)->GetName() + TString("_ratio"));
+  hRatio->Divide(sigmas.at(1));
+  // hRatio->GetYaxis()->SetTitle(titles.at(0) + " / " + titles.at(1));
+  hRatio->GetYaxis()->SetTitle("black / red");
+  hRatio->SetTitle("");
+  hRatio->SetMinimum(0.6); hRatio->SetMaximum(1.4);
+  hRatio->Draw();
+  setFont(hRatio);
+  hRatio->GetYaxis()->SetNdivisions(505);
+  btmPad.SetGrid();
+
   c.Print(outPDF, TString("Title:") + sigmas[0]->GetTitle());
 
+  topPad.cd();
 
   TLegend leg1(0.65, 0.85 - 0.06 * (sigmas.size() + 1), 0.93, 0.85);
   leg1.SetFillStyle(0);
@@ -229,14 +274,33 @@ void SigmaComparison(TString outPDF, const vector<TString>& filesNames,
   leg1.Draw();
   topPad.SetGrid();
 
+  btmPad.cd();
+  TH1D* hRatio1 = (TH1D*)means.at(0)->Clone(means.at(0)->GetName() + TString("_ratio"));
+  hRatio1->Add(hRatio1,means.at(1),1,-1);
+  // hRatio1->GetYaxis()->SetTitle(titles.at(0) + " / " + titles.at(1));
+  hRatio1->GetYaxis()->SetTitle("black - red");
+  hRatio1->SetTitle("");
+  // hRatio1->SetMinimum(0.6); hRatio1->SetMaximum(1.4);
+  hRatio1->Draw();
+  setFont(hRatio1);
+  hRatio1->GetYaxis()->SetNdivisions(505);
+  btmPad.SetGrid();
+
   c.Print(outPDF, TString("Title:") + means[0]->GetTitle());
 
 
   for (int i = 0; i < mom_cors.size(); i++) {
-    topPad.cd();
+    onePad.cd();
     mom_cors[i]->Draw("COLZ");
-    topPad.SetGrid();
-    c.Print(outPDF, TString("Title:") + mom_cors[i]->GetTitle());
+    onePad.SetGrid();
+    c1.Print(outPDF, TString("Title:") + mom_cors[i]->GetTitle());
+  }
+
+  for (int i = 0; i < mom_response.size(); i++) {
+    onePad.cd();
+    mom_response[i]->Draw("COLZ");
+    onePad.SetGrid();
+    c1.Print(outPDF, TString("Title:") + mom_response[i]->GetTitle());
   }
 
 

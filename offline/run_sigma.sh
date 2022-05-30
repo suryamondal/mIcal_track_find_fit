@@ -9,18 +9,18 @@ filelist=(
     # # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_1665Lakh_529aa33.root"
     # # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_135Lakh_0c526af.root"
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_431Lakh_95de138.root"
-    "../outputrootfiles/corsika76300_FLUKA_SIBYLL_739Lakh_3929420.root"
+    # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_739Lakh_3929420.root"
     # "../outputrootfiles/corsika76300_FLUKA_SIBYLL_1000Lakh_96cc012.root"
-    # "../../anal_magnet_20191014_sim01/recodata/test_reco_b249b8e.root"
-    "../../anal_magnet_20191014_sim01/recodata/test_reco_7a32746.root"
+    "../../anal_magnet_20191014_sim01/recodata/test_reco_b249b8e.root"
+    "../../anal_magnet_20191014_sim01/recodata/test_reco_9333cc3.root"
 )
 
 fileTags=(
     # "d0\ minimize\ sqrt\ wt"
     # "xy\ minimize\ sqrt\ wt"
-    "xy\ minimize\ no\ wt"
+    # "xy\ minimize\ no\ wt"
     # "xy\ minimize\ exp\ wt"
-    # "kalman"
+    "kalman"
     "kalman\ circle"
     )
 
