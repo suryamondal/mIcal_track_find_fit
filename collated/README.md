@@ -22,7 +22,7 @@ and multiplicity.
 For this inefficiency plots are generated for each strip.
 - One inefficiency plot for each strip.
 - If a strip has signal then the extrapolated position is filled in the respective histogram.
-  (This is implemted in `ino_digi_read1.C`. One should activate a flag.)
+  (This is implemted in `ino_digi_read1.C`. One should activate a flag (`isCorrection`?).)
 - The plots are convoluted (or spreaded) by the resolution. The efficiency thus gets
   underestimated. I could not perform 2D convolution. So adopted a simple strategy.
   - I assumed that the RPCs are 100% efficient, when the avalanche is `within the reach`.
