@@ -46,3 +46,6 @@ Batch Submission: The following scrips are for submitting jobs to htcondor.
 surya_job_data.jdl surya_job_sim.jdl
 ```
 Change the `initialdir` before submitting jobs.
+
+## Collated file
+Check the folder `collated` for details.
